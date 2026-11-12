@@ -1,4 +1,3 @@
-
 name: Build APK
 
 on:
@@ -25,21 +24,16 @@ jobs:
           java-version: '17'
           distribution: 'temurin'
 
-      - name: Setup Android SDK
-        uses: android-actions/setup-android@v3
-
       - name: Make Gradlew Executable
-        run: |
-          chmod +x ./V2rayNG/gradlew
+        run: chmod +x ./V2rayNG/gradlew
 
-      - name: Build APK with Libs
+      - name: Build APK with Gradle
         run: |
           cd V2rayNG
-          ./gradlew assembleOssDebug -x lint -x test --continue || ./gradlew assembleDebug -x lint -x test --continue
+          ./gradlew assembleOssDebug -x lint -x test || ./gradlew assembleDebug -x lint -x test
 
       - name: Upload APK
         uses: actions/upload-artifact@v4
         with:
           name: ZamanNG-Official-APK
-          path: |
-            **/build/outputs/apk/**/*.apk
+          path: V2rayNG/app/build/outputs/apk/**/*.apk
