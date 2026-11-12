@@ -27,13 +27,19 @@ jobs:
           java-version: '17'
           distribution: 'temurin'
 
+      - name: Setup Android NDK
+        uses: nttld/setup-ndk@v1
+        with:
+          ndk-version: r26b
+          link-to-sdk: true
+
       - name: Make Gradlew Executable
         run: chmod +x ./gradlew
 
-      - name: Build Debug APK with Custom Theme
+      - name: Build Debug APK
         run: ./gradlew assembleDebug -x lint -x test --stacktrace
 
-      - name: Upload Custom APK
+      - name: Upload APK
         uses: actions/upload-artifact@v4
         with:
           name: ZamanNG-Turquoise-APK
