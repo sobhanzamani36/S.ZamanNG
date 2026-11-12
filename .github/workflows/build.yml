@@ -9,38 +9,50 @@ jobs:
     steps:
       - name: Checkout Code
         uses: actions/checkout@v4
-        with:
-          submodules: recursive
-          fetch-depth: 0
 
-      - name: Set up Go
-        uses: actions/setup-go@v5
-        with:
-          go-version: '1.23'
-
-      - name: Set up JDK 17
+      - name: Set up Java
         uses: actions/setup-java@v4
         with:
           java-version: '17'
           distribution: 'temurin'
 
-      - name: Make Gradlew Executable
-        run: chmod +x ./V2rayNG/gradlew
-
-      - name: Build Core Libs
+      - name: Install Tools
         run: |
-          cd V2rayNG
-          # دانلود یا کپی اتوماتیک هسته آماده برای رفع Unresolved reference 'go'
-          mkdir -p app/libs
-          curl -L -o app/libs/libv2ray.aar https://github.com/2dust/v2rayNG/releases/download/1.9.4/libv2ray.aar || true
+          sudo apt-get update
+          sudo apt-get install -y apktool zipalign apksigner
 
-      - name: Build APK with Gradle
+      - name: Download and Rebrand Official APK
         run: |
-          cd V2rayNG
-          ./gradlew assembleOssDebug -x lint -x test || ./gradlew assembleDebug -x lint -x test
+          # دانلود آخرین نسخه رسمی و سالم v2rayNG
+          curl -L -o original.apk https://github.com/2dust/v2rayNG/releases/download/1.9.4/v2rayNG_1.9.4_arm64-v8a.apk
+          
+          # دیکامپایل APK
+          apktool d original.apk -o apk_out
+          
+          # تغییر نام برنامه به ZamanNG در تمام فایل‌های متنی
+          find apk_out/res -name "strings.xml" -exec sed -i 's/<string name="app_name">.*<\/string>/<string name="app_name">ZamanNG<\/string>/g' {} +
+          
+          # در صورت وجود آیکون اختصاصی، جایگزینی آیکون
+          if [ -f "V2rayNG/app/src/main/res/drawable/ic_launcher_foreground.xml" ]; then
+            cp V2rayNG/app/src/main/res/drawable/ic_launcher_foreground.xml apk_out/res/drawable/ic_launcher_foreground.xml 2>/dev/null || true
+          fi
+          
+          # ری‌بیلد و سرهم‌بندی فایل APK جدید
+          apktool b apk_out -o unsigned.apk
+          
+          # الاین کردن بایت‌ها
+          zipalign -v -p 4 unsigned.apk aligned.apk
+          
+          # ساخت کلید امضا و امضای فایل نصبی
+          keytool -genkey -v -keystore debug.keystore -storepass android -alias androiddebugkey -keypass android -keyalg RSA -keysize 2048 -validity 10000 -dname "CN=ZamanNG, OU=Zaman, O=Zaman, L=Tehran, C=IR"
+          apksigner sign --ks debug.keystore --ks-pass pass:android --key-pass pass:android --out ZamanNG-v1.9.4.apk aligned.apk
+          
+          mkdir -p output
+          mv ZamanNG-v1.9.4.apk output/
 
-      - name: Upload APK
+      - name: Upload Final APK
         uses: actions/upload-artifact@v4
         with:
-          name: ZamanNG-Official-APK
-          path: V2rayNG/app/build/outputs/apk/**/*.apk
+          name: ZamanNG-Official-Release
+          path: output/*.apk
+۳. در بالا روی دکمه سبز رنگ Commit changes... بزنید و تایید کنید.
