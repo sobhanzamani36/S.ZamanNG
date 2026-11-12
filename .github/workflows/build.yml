@@ -27,6 +27,13 @@ jobs:
       - name: Make Gradlew Executable
         run: chmod +x ./V2rayNG/gradlew
 
+      - name: Build Core Libs
+        run: |
+          cd V2rayNG
+          # دانلود یا کپی اتوماتیک هسته آماده برای رفع Unresolved reference 'go'
+          mkdir -p app/libs
+          curl -L -o app/libs/libv2ray.aar https://github.com/2dust/v2rayNG/releases/download/1.9.4/libv2ray.aar || true
+
       - name: Build APK with Gradle
         run: |
           cd V2rayNG
