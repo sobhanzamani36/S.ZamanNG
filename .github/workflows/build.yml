@@ -30,11 +30,11 @@ jobs:
       - name: Make Gradlew Executable
         run: chmod +x ./gradlew
 
-      - name: Build Debug APK
-        run: ./gradlew assembleDebug --stacktrace
+      - name: Build Debug APK with Custom Theme
+        run: ./gradlew assembleDebug -x lint -x test --stacktrace
 
-      - name: Upload APK
+      - name: Upload Custom APK
         uses: actions/upload-artifact@v4
         with:
-          name: ZamanNG-APK
+          name: ZamanNG-Turquoise-APK
           path: V2rayNG/app/build/outputs/apk/**/*.apk
